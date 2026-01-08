@@ -1,116 +1,315 @@
-// Anime Browse Page - Backend integrated
-import React, { useState, useEffect } from 'react';
-import { api, Episode } from '../utils/api';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import AnimeCard from '@/components/anime/AnimeCard';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Filter, SortAsc, Grid, List, ChevronDown, X, Loader2 } from 'lucide-react';
+import { trendingAnime, latestReleases, popularDonghua } from '@/data/mockAnime';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const allAnime = [...trendingAnime, ...latestReleases];
+
+const genres = [
+  'Action', 'Adventure', 'Comedy', 'Drama', 'Fantasy', 'Horror', 
+  'Mystery', 'Romance', 'Sci-Fi', 'Slice of Life', 'Sports', 'Supernatural'
+];
+
+const languages = ['Japanese', 'English', 'Hindi', 'Tamil', 'Telugu', 'Korean'];
+const years = ['2024', '2023', '2022', '2021', '2020', '2019'];
+const statuses = ['Airing', 'Completed', 'Upcoming'];
+const sortOptions = [
+  { value: 'popularity', label: 'Most Popular' },
+  { value: 'rating', label: 'Highest Rated' },
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
+  { value: 'name-asc', label: 'Name A-Z' },
+  { value: 'name-desc', label: 'Name Z-A' },
+];
 
 const AnimeBrowse: React.FC = () => {
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [animeList, setAnimeList] = useState(allAnime);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
-  const [sourceFilter, setSourceFilter] = useState<string | null>(null);
-  const [total, setTotal] = useState(0);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Filters
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState('all');
+  const [selectedYear, setSelectedYear] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [sortBy, setSortBy] = useState('popularity');
 
-  useEffect(() => {
-    loadEpisodes();
-  }, [page, sourceFilter]);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const loadEpisodes = async () => {
+  // Simulate loading more
+  const loadMore = useCallback(() => {
+    if (loading || !hasMore) return;
     setLoading(true);
-    try {
-      const data = await api.getEpisodes(page, { 
-        content_type: 'anime',
-        ...(sourceFilter && { source: sourceFilter })
-      });
-      setEpisodes(data.episodes);
-      setTotal(data.total);
-    } catch (error) {
-      console.error('Failed to load episodes:', error);
+    
+    setTimeout(() => {
+      // Simulate adding more anime
+      const moreAnime = allAnime.map(a => ({
+        ...a,
+        id: `${a.id}-page-${page + 1}`,
+      }));
+      setAnimeList(prev => [...prev, ...moreAnime]);
+      setPage(p => p + 1);
+      setLoading(false);
+      if (page >= 3) setHasMore(false); // Limit to 3 pages for demo
+    }, 800);
+  }, [loading, hasMore, page]);
+
+  // Infinite scroll
+  useEffect(() => {
+    if (!loadMoreRef.current) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observerRef.current.observe(loadMoreRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [loadMore, hasMore, loading]);
+
+  // Filter logic
+  const filteredAnime = animeList.filter(anime => {
+    if (selectedGenres.length > 0 && !anime.genres.some(g => selectedGenres.includes(g))) {
+      return false;
     }
-    setLoading(false);
+    if (selectedStatus !== 'all' && anime.status !== selectedStatus) {
+      return false;
+    }
+    return true;
+  });
+
+  // Sort logic
+  const sortedAnime = [...filteredAnime].sort((a, b) => {
+    switch (sortBy) {
+      case 'rating':
+        return b.rating - a.rating;
+      case 'newest':
+        return parseInt(b.year || '0') - parseInt(a.year || '0');
+      case 'oldest':
+        return parseInt(a.year || '0') - parseInt(b.year || '0');
+      case 'name-asc':
+        return a.title.localeCompare(b.title);
+      case 'name-desc':
+        return b.title.localeCompare(a.title);
+      default:
+        return 0;
+    }
+  });
+
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres(prev => 
+      prev.includes(genre) 
+        ? prev.filter(g => g !== genre)
+        : [...prev, genre]
+    );
   };
 
+  const clearFilters = () => {
+    setSelectedGenres([]);
+    setSelectedLanguage('all');
+    setSelectedYear('all');
+    setSelectedStatus('all');
+    setSortBy('popularity');
+  };
+
+  const activeFilterCount = selectedGenres.length + 
+    (selectedLanguage !== 'all' ? 1 : 0) + 
+    (selectedYear !== 'all' ? 1 : 0) + 
+    (selectedStatus !== 'all' ? 1 : 0);
+
   return (
-    <div className="anime-browse" style={{ padding: '20px' }}>
-      <h1>Browse Anime</h1>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
       
-      {/* Source Filters */}
-      <div className="filters" style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-        <button onClick={() => setSourceFilter(null)} className={!sourceFilter ? 'active' : ''}>
-          All Sources
-        </button>
-        <button onClick={() => setSourceFilter('TPXSUB')} className={sourceFilter === 'TPXSUB' ? 'active' : ''}>
-          Hindi Sub (TPXSub)
-        </button>
-        <button onClick={() => setSourceFilter('SUBSPLEASE')} className={sourceFilter === 'SUBSPLEASE' ? 'active' : ''}>
-          English Sub (SubsPlease)
-        </button>
-        <button onClick={() => setSourceFilter('TOONWORLD')} className={sourceFilter === 'TOONWORLD' ? 'active' : ''}>
-          Multi-Audio
-        </button>
-        <button onClick={() => setSourceFilter('HIANIME')} className={sourceFilter === 'HIANIME' ? 'active' : ''}>
-          HiAnime (Old)
-        </button>
-      </div>
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Browse Anime</h1>
+            <p className="text-muted-foreground">Discover thousands of anime series and movies</p>
+          </div>
 
-      {/* Episode Grid */}
-      <div className="episode-grid" style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-        gap: '20px',
-        marginBottom: '30px'
-      }}>
-        {loading ? (
-          <div>Loading anime...</div>
-        ) : episodes.length === 0 ? (
-          <div>No episodes found. Run scraper first!</div>
-        ) : (
-          episodes.map(ep => (
-            <div key={ep.slug} className="episode-card anime-card" style={{
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              padding: '15px',
-              cursor: 'pointer'
-            }}>
-              <h3>{ep.anime_title}</h3>
-              <p>Episode {ep.episode_number}</p>
-              <p>🎧 {ep.audio_languages.join(', ')}</p>
-              <p>👁️ {ep.view_count} views</p>
-              <button 
-                onClick={() => window.location.href = `/watch/${ep.slug}`}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  background: '#4CAF50',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: 'pointer'
-                }}
+          {/* Toolbar */}
+          <div className="flex flex-wrap gap-4 items-center justify-between mb-6">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Button
+                variant={showFilters ? "secondary" : "outline"}
+                onClick={() => setShowFilters(!showFilters)}
+                className="gap-2"
               >
-                ▶️ Watch Now
-              </button>
-            </div>
-          ))
-        )}
-      </div>
+                <Filter className="w-4 h-4" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <Badge variant="default" className="ml-1">{activeFilterCount}</Badge>
+                )}
+              </Button>
 
-      {/* Pagination */}
-      <div className="pagination" style={{ display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
-        <button 
-          onClick={() => setPage(p => Math.max(1, p - 1))} 
-          disabled={page === 1}
-          style={{ padding: '10px 20px', cursor: page === 1 ? 'not-allowed' : 'pointer' }}
-        >
-          ← Previous
-        </button>
-        <span>Page {page} of {Math.ceil(total / 20)}</span>
-        <button 
-          onClick={() => setPage(p => p + 1)}
-          disabled={episodes.length < 20}
-          style={{ padding: '10px 20px', cursor: episodes.length < 20 ? 'not-allowed' : 'pointer' }}
-        >
-          Next →
-        </button>
-      </div>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[160px]">
+                  <SortAsc className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground mr-2">
+                {sortedAnime.length} results
+              </span>
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="w-4 h-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="icon"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Filters Panel */}
+          {showFilters && (
+            <div className="bg-card border border-border rounded-xl p-6 mb-6 animate-fade-up">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Filters</h3>
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    <X className="w-4 h-4 mr-1" />
+                    Clear all
+                  </Button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Genres */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Genres</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {genres.map(genre => (
+                      <Badge
+                        key={genre}
+                        variant={selectedGenres.includes(genre) ? "default" : "outline"}
+                        className="cursor-pointer hover:bg-primary/80 transition-colors"
+                        onClick={() => toggleGenre(genre)}
+                      >
+                        {genre}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Language */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Language</h4>
+                  <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any language</SelectItem>
+                      {languages.map(lang => (
+                        <SelectItem key={lang} value={lang}>{lang}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Year */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Year</h4>
+                  <Select value={selectedYear} onValueChange={setSelectedYear}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any year</SelectItem>
+                      {years.map(year => (
+                        <SelectItem key={year} value={year}>{year}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <h4 className="text-sm font-medium mb-3 text-muted-foreground">Status</h4>
+                  <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Any status</SelectItem>
+                      {statuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Anime Grid */}
+          <div className={viewMode === 'grid' 
+            ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+            : "flex flex-col gap-4"
+          }>
+            {sortedAnime.map((anime, index) => (
+              <AnimeCard key={`${anime.id}-${index}`} anime={anime} />
+            ))}
+          </div>
+
+          {/* Load More / Infinite Scroll Trigger */}
+          <div ref={loadMoreRef} className="py-12 flex justify-center">
+            {loading && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="w-5 h-5 animate-spin" />
+                <span>Loading more...</span>
+              </div>
+            )}
+            {!hasMore && !loading && (
+              <p className="text-muted-foreground">No more anime to load</p>
+            )}
+          </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 };

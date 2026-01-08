@@ -1,146 +1,185 @@
-// Watchlist Page - With Share Functionality
 import React, { useState, useEffect } from 'react';
-import { api, Episode } from '../utils/api';
+import { Link } from 'react-router-dom';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useWatchlist } from '@/hooks/useWatchlist';
+import { trendingAnime } from '@/data/mockAnime';
+import { 
+  Play, Trash2, Share2, Copy, Check, BookmarkX, 
+  ExternalLink, Calendar, Star 
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 const WatchlistPage: React.FC = () => {
-  const [episodes, setEpisodes] = useState<Episode[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const { watchlist, removeFromWatchlist, clearWatchlist } = useWatchlist();
+  const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+
+  // Map watchlist IDs to anime data
+  const watchlistAnime = watchlist.map(id => 
+    trendingAnime.find(a => a.id === id)
+  ).filter(Boolean);
 
   useEffect(() => {
-    const userData = localStorage.getItem('anicrew_user');
-    if (!userData) {
-      alert('Please login first');
-      window.location.href = '/login';
-      return;
-    }
-    
-    const parsedUser = JSON.parse(userData);
-    setUser(parsedUser);
-    loadWatchlist(parsedUser.email);
-  }, []);
+    // Generate shareable URL
+    const url = `${window.location.origin}/watchlist/shared?ids=${watchlist.join(',')}`;
+    setShareUrl(url);
+  }, [watchlist]);
 
-  const loadWatchlist = async (userEmail: string) => {
-    setLoading(true);
+  const handleShare = async () => {
     try {
-      const slugs = await api.getWatchlist(userEmail);
-      
-      // Fetch full episode details
-      const episodePromises = slugs.map(slug => api.getEpisode(slug).catch(() => null));
-      const episodesData = (await Promise.all(episodePromises)).filter(Boolean) as Episode[];
-      setEpisodes(episodesData);
+      if (navigator.share) {
+        await navigator.share({
+          title: 'My AniCrew Watchlist',
+          text: `Check out my anime watchlist with ${watchlist.length} titles!`,
+          url: shareUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        toast.success('Watchlist link copied to clipboard!');
+        setTimeout(() => setCopied(false), 2000);
+      }
     } catch (error) {
-      console.error('Failed to load watchlist:', error);
+      console.error('Share failed:', error);
     }
-    setLoading(false);
   };
 
-  const shareWatchlist = () => {
-    if (!user) return;
-    
-    const url = `${window.location.origin}/watchlist/${user.email}`;
-    navigator.clipboard.writeText(url);
-    alert('🔗 Watchlist link copied to clipboard!');
+  const handleRemove = (id: string, title: string) => {
+    removeFromWatchlist(id);
+    toast.success(`Removed "${title}" from watchlist`);
   };
 
-  const handleRemove = async (slug: string) => {
-    // TODO: Backend needs remove endpoint
-    // For now show message
-    alert('Remove functionality will be added in next update!');
-  };
+  if (watchlist.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center px-4 py-16">
+            <BookmarkX className="w-20 h-20 mx-auto text-muted-foreground mb-6" />
+            <h1 className="text-2xl md:text-3xl font-display font-bold mb-4">Your Watchlist is Empty</h1>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Start adding anime and donghua to your watchlist to keep track of what you want to watch.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Link to="/anime">
+                <Button>Browse Anime</Button>
+              </Link>
+              <Link to="/donghua">
+                <Button variant="outline">Browse Donghua</Button>
+              </Link>
+            </div>
+          </div>
+        </main>
 
-  if (!user) return <div>Loading...</div>;
+        <Footer />
+      </div>
+    );
+  }
 
   return (
-    <div className="watchlist-page" style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1>📚 My Watchlist ({episodes.length})</h1>
-        <button 
-          onClick={shareWatchlist}
-          style={{
-            padding: '10px 20px',
-            background: '#2196F3',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer'
-          }}
-        >
-          🔗 Share Watchlist
-        </button>
-      </div>
-
-      {loading ? (
-        <div>Loading your watchlist...</div>
-      ) : episodes.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '50px', color: '#666' }}>
-          <h2>Your watchlist is empty</h2>
-          <p>Browse anime/donghua and add episodes to your watchlist!</p>
-          <button onClick={() => window.location.href = '/anime'} style={{
-            padding: '10px 20px',
-            background: '#4CAF50',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            marginTop: '20px'
-          }}>
-            Browse Anime
-          </button>
-        </div>
-      ) : (
-        <div className="watchlist-grid" style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', 
-          gap: '20px'
-        }}>
-          {episodes.map(ep => (
-            <div key={ep.slug} className="watchlist-card anime-card" style={{
-              border: '1px solid #ddd',
-              borderRadius: '8px',
-              padding: '15px',
-              background: '#fff'
-            }}>
-              <h3>{ep.anime_title}</h3>
-              <p>Episode {ep.episode_number}</p>
-              <p>🎧 {ep.audio_languages.join(', ')}</p>
-              <p style={{ fontSize: '12px', color: '#999' }}>
-                Added: {new Date(ep.created_at).toLocaleDateString()}
-              </p>
-              
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                <button 
-                  onClick={() => window.location.href = `/watch/${ep.slug}`}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#4CAF50',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  ▶️ Watch
-                </button>
-                <button 
-                  onClick={() => handleRemove(ep.slug)}
-                  style={{
-                    padding: '10px 15px',
-                    background: '#f44336',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  🗑️
-                </button>
-              </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      
+      <main className="flex-1">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">📚 My Watchlist</h1>
+              <p className="text-muted-foreground">{watchlist.length} titles saved</p>
             </div>
-          ))}
+            
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={handleShare} className="gap-2">
+                {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                {copied ? 'Copied!' : 'Share'}
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => {
+                  clearWatchlist();
+                  toast.success('Watchlist cleared');
+                }}
+                className="gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Clear All
+              </Button>
+            </div>
+          </div>
+
+          {/* Watchlist Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {watchlistAnime.map((anime) => anime && (
+              <Card key={anime.id} className="overflow-hidden hover:shadow-elevated transition-shadow">
+                <div className="flex">
+                  {/* Thumbnail */}
+                  <div className="w-32 h-44 flex-shrink-0 relative">
+                    <img
+                      src={anime.thumbnail}
+                      alt={anime.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <Badge 
+                      className="absolute top-2 left-2"
+                      variant={anime.type === 'Anime' ? 'default' : 'secondary'}
+                    >
+                      {anime.type}
+                    </Badge>
+                  </div>
+                  
+                  {/* Info */}
+                  <CardContent className="flex-1 p-4 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-semibold line-clamp-2 mb-2">{anime.title}</h3>
+                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mb-2">
+                        <span className="flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
+                          {anime.rating}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {anime.year}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {anime.genres.slice(0, 2).map(genre => (
+                          <Badge key={genre} variant="outline" className="text-xs">
+                            {genre}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 mt-4">
+                      <Link to={`/anime/${anime.id}`} className="flex-1">
+                        <Button size="sm" className="w-full gap-1">
+                          <Play className="w-3 h-3" />
+                          Watch
+                        </Button>
+                      </Link>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => handleRemove(anime.id, anime.title)}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
-      )}
+      </main>
+
+      <Footer />
     </div>
   );
 };

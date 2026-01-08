@@ -5,60 +5,61 @@ export interface Theme {
   name: string;
   category: 'light' | 'dark' | 'special';
   previewColor: string;
+  icon: string;
 }
 
 export const themes: Theme[] = [
   // Light Themes
-  { id: 'root', name: 'Moonlight', category: 'light', previewColor: '#f8f9fa' },
-  { id: 'sakura-snow', name: 'Sakura Snow', category: 'light', previewColor: '#fff0f5' },
-  { id: 'cloud-white', name: 'Cloud White', category: 'light', previewColor: '#f0f8ff' },
-  { id: 'ivory-sky', name: 'Ivory Sky', category: 'light', previewColor: '#fffff0' },
-  { id: 'soft-pastel', name: 'Soft Pastel', category: 'light', previewColor: '#faf0e6' },
-  { id: 'vanilla-cream', name: 'Vanilla Cream', category: 'light', previewColor: '#fdf5e6' },
-  { id: 'morning-bloom', name: 'Morning Bloom', category: 'light', previewColor: '#f0fff0' },
-  { id: 'paper-white', name: 'Paper White', category: 'light', previewColor: '#fefefe' },
-  { id: 'sunrise-tokyo', name: 'Sunrise Tokyo', category: 'light', previewColor: '#fff5ee' },
-  { id: 'light-otaku', name: 'Light Otaku', category: 'light', previewColor: '#f5f5f5' },
-  { id: 'peach-blossom', name: 'Peach Blossom', category: 'light', previewColor: '#ffe4e1' },
-  { id: 'cotton-candy', name: 'Cotton Candy', category: 'light', previewColor: '#ffe4f0' },
+  { id: 'root', name: 'Moonlight', category: 'light', previewColor: '#f8f9fa', icon: '🌙' },
+  { id: 'sakura-snow', name: 'Sakura Snow', category: 'light', previewColor: '#fff0f5', icon: '🌸' },
+  { id: 'cloud-white', name: 'Cloud White', category: 'light', previewColor: '#f0f8ff', icon: '☁️' },
+  { id: 'ivory-sky', name: 'Ivory Sky', category: 'light', previewColor: '#fffff0', icon: '🌤️' },
+  { id: 'soft-pastel', name: 'Soft Pastel', category: 'light', previewColor: '#faf0e6', icon: '🎨' },
+  { id: 'vanilla-cream', name: 'Vanilla Cream', category: 'light', previewColor: '#fdf5e6', icon: '🍦' },
+  { id: 'morning-bloom', name: 'Morning Bloom', category: 'light', previewColor: '#f0fff0', icon: '🌷' },
+  { id: 'paper-white', name: 'Paper White', category: 'light', previewColor: '#fefefe', icon: '📄' },
+  { id: 'sunrise-tokyo', name: 'Sunrise Tokyo', category: 'light', previewColor: '#fff5ee', icon: '🌅' },
+  { id: 'light-otaku', name: 'Light Otaku', category: 'light', previewColor: '#f5f5f5', icon: '✨' },
+  { id: 'peach-blossom', name: 'Peach Blossom', category: 'light', previewColor: '#ffe4e1', icon: '🍑' },
+  { id: 'cotton-candy', name: 'Cotton Candy', category: 'light', previewColor: '#ffe4f0', icon: '🍭' },
   
   // Dark Themes
-  { id: 'midnight-sakura', name: 'Midnight Sakura', category: 'dark', previewColor: '#1a1625' },
-  { id: 'obsidian-night', name: 'Obsidian Night', category: 'dark', previewColor: '#0d1117' },
-  { id: 'phantom-black', name: 'Phantom Black', category: 'dark', previewColor: '#0a0a0a' },
-  { id: 'neon-tokyo', name: 'Neon Tokyo', category: 'dark', previewColor: '#120a1a' },
-  { id: 'crimson-void', name: 'Crimson Void', category: 'dark', previewColor: '#1a0a0a' },
-  { id: 'dark-otaku', name: 'Dark Otaku', category: 'dark', previewColor: '#151515' },
-  { id: 'cyber-shinobi', name: 'Cyber Shinobi', category: 'dark', previewColor: '#0a1520' },
-  { id: 'shadow-realm', name: 'Shadow Realm', category: 'dark', previewColor: '#0d0d15' },
-  { id: 'eclipse-blue', name: 'Eclipse Blue', category: 'dark', previewColor: '#0a0f1a' },
-  { id: 'oni-darkness', name: 'Oni Darkness', category: 'dark', previewColor: '#150a10' },
-  { id: 'void-purple', name: 'Void Purple', category: 'dark', previewColor: '#100a15' },
-  { id: 'noir-anime', name: 'Noir Anime', category: 'dark', previewColor: '#121212' },
+  { id: 'midnight-sakura', name: 'Midnight Sakura', category: 'dark', previewColor: '#1a1625', icon: '🌺' },
+  { id: 'obsidian-night', name: 'Obsidian Night', category: 'dark', previewColor: '#0d1117', icon: '🖤' },
+  { id: 'phantom-black', name: 'Phantom Black', category: 'dark', previewColor: '#0a0a0a', icon: '👻' },
+  { id: 'neon-tokyo', name: 'Neon Tokyo', category: 'dark', previewColor: '#120a1a', icon: '🌆' },
+  { id: 'crimson-void', name: 'Crimson Void', category: 'dark', previewColor: '#1a0a0a', icon: '🔴' },
+  { id: 'dark-otaku', name: 'Dark Otaku', category: 'dark', previewColor: '#151515', icon: '🎭' },
+  { id: 'cyber-shinobi', name: 'Cyber Shinobi', category: 'dark', previewColor: '#0a1520', icon: '🥷' },
+  { id: 'shadow-realm', name: 'Shadow Realm', category: 'dark', previewColor: '#0d0d15', icon: '🌑' },
+  { id: 'eclipse-blue', name: 'Eclipse Blue', category: 'dark', previewColor: '#0a0f1a', icon: '🌘' },
+  { id: 'oni-darkness', name: 'Oni Darkness', category: 'dark', previewColor: '#150a10', icon: '👹' },
+  { id: 'void-purple', name: 'Void Purple', category: 'dark', previewColor: '#100a15', icon: '💜' },
+  { id: 'noir-anime', name: 'Noir Anime', category: 'dark', previewColor: '#121212', icon: '🎬' },
   
   // Special Animated Themes
-  { id: 'solar-flare', name: 'Solar Flare', category: 'special', previewColor: '#ff6b35' },
-  { id: 'vaporwave-neon', name: 'Vaporwave Neon', category: 'special', previewColor: '#ff00ff' },
-  { id: 'retro-anime', name: 'Retro Anime', category: 'special', previewColor: '#e6b800' },
-  { id: 'glassmorphism', name: 'Glassmorphism', category: 'special', previewColor: '#88c0d0' },
-  { id: 'studio-ghibli', name: 'Studio Ghibli', category: 'special', previewColor: '#7cb342' },
-  { id: 'monochrome-pro', name: 'Monochrome Pro', category: 'special', previewColor: '#808080' },
-  { id: 'space-odyssey', name: 'Space Odyssey', category: 'special', previewColor: '#1a0033' },
-  { id: 'lunar-eclipse', name: 'Lunar Eclipse', category: 'special', previewColor: '#2c1654' },
-  { id: 'akatsuki-night', name: 'Akatsuki Night', category: 'special', previewColor: '#8b0000' },
-  { id: 'zen-black', name: 'Zen Black', category: 'special', previewColor: '#1a1a1a' },
-  { id: 'misty-midnight', name: 'Misty Midnight', category: 'special', previewColor: '#2f4f4f' },
-  { id: 'nebula-nights', name: 'Nebula Nights', category: 'special', previewColor: '#4a0080' },
+  { id: 'solar-flare', name: 'Solar Flare', category: 'special', previewColor: '#ff6b35', icon: '☀️' },
+  { id: 'vaporwave-neon', name: 'Vaporwave Neon', category: 'special', previewColor: '#ff00ff', icon: '🌈' },
+  { id: 'retro-anime', name: 'Retro Anime', category: 'special', previewColor: '#e6b800', icon: '📺' },
+  { id: 'glassmorphism', name: 'Glassmorphism', category: 'special', previewColor: '#88c0d0', icon: '🪟' },
+  { id: 'ghibli', name: 'Studio Ghibli', category: 'special', previewColor: '#7cb342', icon: '🍃' },
+  { id: 'monochrome-pro', name: 'Monochrome Pro', category: 'special', previewColor: '#808080', icon: '⚪' },
+  { id: 'space-odyssey', name: 'Space Odyssey', category: 'special', previewColor: '#1a0033', icon: '🚀' },
+  { id: 'lunar-eclipse', name: 'Lunar Eclipse', category: 'special', previewColor: '#2c1654', icon: '🌓' },
+  { id: 'akatsuki-night', name: 'Akatsuki Night', category: 'special', previewColor: '#8b0000', icon: '☁️' },
+  { id: 'zen-black', name: 'Zen Black', category: 'special', previewColor: '#1a1a1a', icon: '☯️' },
+  { id: 'misty-midnight', name: 'Misty Midnight', category: 'special', previewColor: '#2f4f4f', icon: '🌫️' },
+  { id: 'nebula-nights', name: 'Nebula Nights', category: 'special', previewColor: '#4a0080', icon: '🌌' },
 ];
 
-// Quick access: 3 light, 3 dark for variety
+// Quick access: 6 themes (2 light, 2 dark, 2 special)
 export const quickAccessThemes = [
-  themes.find(t => t.id === 'root')!, // Moonlight (light)
-  themes.find(t => t.id === 'midnight-sakura')!, // Midnight Sakura (dark)
-  themes.find(t => t.id === 'sakura-snow')!, // Sakura Snow (light)
-  themes.find(t => t.id === 'neon-tokyo')!, // Neon Tokyo (dark)
-  themes.find(t => t.id === 'cloud-white')!, // Cloud White (light)
-  themes.find(t => t.id === 'obsidian-night')!, // Obsidian Night (dark)
+  themes.find(t => t.id === 'root')!,
+  themes.find(t => t.id === 'midnight-sakura')!,
+  themes.find(t => t.id === 'sakura-snow')!,
+  themes.find(t => t.id === 'neon-tokyo')!,
+  themes.find(t => t.id === 'space-odyssey')!,
+  themes.find(t => t.id === 'ghibli')!,
 ];
 
 interface ThemeContextType {
@@ -79,30 +80,25 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         if (found) return found;
       }
     }
-    // Default to Moonlight (light theme) for clean look
-    return themes[0];
+    return themes[0]; // Default to Moonlight
   });
 
-  // Apply theme on mount and change
   useEffect(() => {
-    const applyTheme = () => {
-      localStorage.setItem('anicrew-theme', currentTheme.id);
-      
-      // Remove all theme classes
-      const classes = Array.from(document.documentElement.classList);
-      classes.forEach(cls => {
-        if (cls.startsWith('theme-')) {
-          document.documentElement.classList.remove(cls);
-        }
-      });
-      
-      // Add current theme class if not root
-      if (currentTheme.id !== 'root') {
-        document.documentElement.classList.add(`theme-${currentTheme.id}`);
-      }
-    };
+    // Save to localStorage
+    localStorage.setItem('anicrew-theme', currentTheme.id);
     
-    applyTheme();
+    // Remove all theme classes from document root
+    const root = document.documentElement;
+    root.classList.forEach(cls => {
+      if (cls.startsWith('theme-')) {
+        root.classList.remove(cls);
+      }
+    });
+    
+    // Add new theme class if not default
+    if (currentTheme.id !== 'root') {
+      root.classList.add(`theme-${currentTheme.id}`);
+    }
   }, [currentTheme]);
 
   const setTheme = (theme: Theme) => {
