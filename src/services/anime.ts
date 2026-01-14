@@ -1,3 +1,4 @@
+
 import { getAnimeList, getAnimeEpisodes } from './codewords-api';
 
 // Types for VideoPlayer compatibility
@@ -17,12 +18,10 @@ export interface AudioTrack {
   url: string;
 }
 
-// Main fetch functions
 export async function fetchTrendingAnime() {
   try {
     return await getAnimeList();
   } catch (error) {
-    console.error('Failed:', error);
     return [];
   }
 }
@@ -61,6 +60,11 @@ export async function fetchEpisodeById(animeId: string, episodeNumber: number) {
   }
 }
 
+// Alias for fetchEpisodeById (WatchPage.tsx compatibility)
+export async function getEpisode(animeId: string, episodeNumber: number) {
+  return fetchEpisodeById(animeId, episodeNumber);
+}
+
 export async function searchAnime(query: string) {
   try {
     const allAnime = await getAnimeList();
@@ -76,21 +80,9 @@ export async function searchAnime(query: string) {
 export async function getStreamUrl(animeId: string, episodeNumber: number): Promise<StreamSource[]> {
   try {
     const episode = await fetchEpisodeById(animeId, episodeNumber);
-    
-    if (!episode || !episode.doodUrl) {
-      return [];
-    }
-
-    // Return DoodStream URL as HLS source
-    return [
-      {
-        quality: 'Auto',
-        url: episode.doodUrl,
-        type: 'hls'
-      }
-    ];
+    if (!episode || !episode.doodUrl) return [];
+    return [{ quality: 'Auto', url: episode.doodUrl, type: 'hls' }];
   } catch (error) {
-    console.error('Failed to get stream URL:', error);
     return [];
   }
 }
@@ -100,18 +92,14 @@ export async function getDownloadUrl(animeId: string, episodeNumber: number): Pr
     const episode = await fetchEpisodeById(animeId, episodeNumber);
     return episode?.doodUrl || '';
   } catch (error) {
-    console.error('Failed to get download URL:', error);
     return '';
   }
 }
 
-// Placeholder functions for VideoPlayer (can be enhanced later)
-export async function getSubtitles(animeId: string, episodeNumber: number): Promise<Subtitle[]> {
-  // Return empty for now - can be enhanced later
+export async function getSubtitles(): Promise<Subtitle[]> {
   return [];
 }
 
-export async function getAudioTracks(animeId: string, episodeNumber: number): Promise<AudioTrack[]> {
-  // Return empty for now - can be enhanced later
+export async function getAudioTracks(): Promise<AudioTrack[]> {
   return [];
 }
