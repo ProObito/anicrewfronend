@@ -17,7 +17,6 @@ import AdminDashboard from "./pages/AdminDashboard";
 import PremiumPage from "./pages/PremiumPage";
 
 const queryClient = new QueryClient();
-
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
