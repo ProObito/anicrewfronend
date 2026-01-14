@@ -1,122 +1,56 @@
-import api from "./api";
+// src/services/anime.ts
+import { getAnimeList, getAnimeEpisodes } from './codewords-api';
 
-// API Base URL from environment
-const API_BASE = import.meta.env.VITE_API_URL || 'https://townbackend-825d5dfe9e19.herokuapp.com/api';
-
-export interface StreamSource {
-  quality: string;
-  url: string;
-  type: 'streamtape' | 'doodstream' | 'direct';
+export async function fetchTrendingAnime() {
+  try {
+    return await getAnimeList();
+  } catch (error) {
+    console.error('Failed:', error);
+    return [];
+  }
 }
 
-export interface Subtitle {
-  language: string;
-  label: string;
-  url: string;
+export async function fetchPopularAnime() {
+  return fetchTrendingAnime();
 }
 
-export interface AudioTrack {
-  language: string;
-  label: string;
-  default: boolean;
+export async function fetchRecentlyUpdated() {
+  return fetchTrendingAnime();
 }
 
-export interface Episode {
-  id: string;
-  number: number;
-  title: string;
-  thumbnail: string;
-  duration: string;
-  airDate: string;
-  description?: string;
-  streams: StreamSource[];
-  subtitles: Subtitle[];
-  audioTracks: AudioTrack[];
-  downloadUrl?: string;
+export async function fetchAnimeById(id: string) {
+  try {
+    const list = await getAnimeList();
+    return list.find(a => a.id === id);
+  } catch (error) {
+    return null;
+  }
 }
 
-export interface AnimeDetail {
-  id: string;
-  title: string;
-  image: string;
-  coverImage?: string;
-  description: string;
-  genres: string[];
-  rating: number;
-  status: 'ongoing' | 'completed' | 'upcoming';
-  type: 'anime' | 'donghua';
-  episodes: Episode[];
-  totalEpisodes: number;
-  releaseYear: number;
-  studio?: string;
+export async function fetchEpisodesByAnimeId(animeId: string) {
+  try {
+    return await getAnimeEpisodes(animeId);
+  } catch (error) {
+    return [];
+  }
 }
 
-export const getAnimeList = async () => {
+export async function fetchEpisodeById(animeId: string, episodeNumber: number) {
   try {
-    const res = await api.get("/anime");
-    return res.data;
+    const episodes = await getAnimeEpisodes(animeId);
+    return episodes.find(ep => ep.number === episodeNumber);
   } catch (error) {
-    console.error('Error fetching anime list:', error);
-    throw error;
+    return null;
   }
-};
+}
 
-export const getAnimeById = async (id: string): Promise<AnimeDetail> => {
+export async function searchAnime(query: string) {
   try {
-    const res = await api.get(`/anime/${id}`);
-    return res.data;
+    const allAnime = await getAnimeList();
+    return allAnime.filter(anime => 
+      anime.title.toLowerCase().includes(query.toLowerCase())
+    );
   } catch (error) {
-    console.error('Error fetching anime details:', error);
-    throw error;
+    return [];
   }
-};
-
-export const getEpisode = async (animeId: string, episodeNumber: number): Promise<Episode> => {
-  try {
-    const res = await api.get(`/anime/${animeId}/episode/${episodeNumber}`);
-    return res.data;
-  } catch (error) {
-    console.error('Error fetching episode:', error);
-    throw error;
-  }
-};
-
-export const getStreamUrl = async (animeId: string, episodeNumber: number, quality: string): Promise<string> => {
-  try {
-    const res = await api.get(`/anime/${animeId}/episode/${episodeNumber}/stream`, {
-      params: { quality }
-    });
-    return res.data.url;
-  } catch (error) {
-    console.error('Error fetching stream URL:', error);
-    throw error;
-  }
-};
-
-export const getDownloadUrl = async (animeId: string, episodeNumber: number, quality: string): Promise<string> => {
-  try {
-    const res = await api.get(`/anime/${animeId}/episode/${episodeNumber}/download`, {
-      params: { quality }
-    });
-    return res.data.url;
-  } catch (error) {
-    console.error('Error fetching download URL:', error);
-    throw error;
-  }
-};
-
-export const searchAnime = async (query: string, filters?: {
-  type?: 'anime' | 'donghua';
-  status?: 'ongoing' | 'completed' | 'upcoming';
-  genre?: string;
-}) => {
-  try {
-    const res = await api.get('/anime/search', {
-      params: { q: query, ...filters }
-    });
-    return res.data;
-  } catch (error) {
-    console.error('Error searching anime:', error);
-    throw error;
-  }
-};
+}
